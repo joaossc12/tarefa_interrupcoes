@@ -44,10 +44,14 @@ pico_set_program_version(tarefa_interrupcoes "0.1")
 pico_enable_stdio_uart(tarefa_interrupcoes 1)
 pico_enable_stdio_usb(tarefa_interrupcoes 1)
 
+pico_generate_pio_header(tarefa_interrupcoes ${CMAKE_CURRENT_LIST_DIR}/tarefa_interrupcoes.pio)
+target_sources(tarefa_interrupcoes PRIVATE tarefa_interrupcoes.c)
+
 # Add the standard library to the build
 target_link_libraries(tarefa_interrupcoes
         pico_stdlib
-        hardware_pwm)
+        hardware_pwm
+        hardware_pio)
 
 # Add the standard include files to the build
 target_include_directories(tarefa_interrupcoes PRIVATE
