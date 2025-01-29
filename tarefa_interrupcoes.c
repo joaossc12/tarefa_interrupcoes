@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
+#include "hardware/pwm.h"
+#include "hardware/clocks.h"
 
 #define led_red 13
 #define led_blue 12
@@ -8,16 +10,25 @@
 #define button_a 5
 #define button_b 6
 
+#define INTERVAL_US 100000  // 100ms (5Hz)
+
 void init_pinos();
 
-int main()
-{   
+bool blink_led(struct repeating_timer *t) {
+    gpio_put(led_red, !gpio_get(led_red));  // Inverte o estado do LED
+    return true;  // Continua repetindo
+}
+
+
+
+int main() {
+
     init_pinos();
-    stdio_init_all();
+    struct repeating_timer timer;
+    add_repeating_timer_us(INTERVAL_US, blink_led, NULL, &timer);
 
     while (true) {
-        printf("Hello, world!\n");
-        sleep_ms(1000);
+        tight_loop_contents();
     }
 }
 
