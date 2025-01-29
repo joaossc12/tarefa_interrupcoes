@@ -14,8 +14,8 @@
 
 #define PERIODO_US 100000  // 100ms para mudar o estado 10 vezes por segundo, portanto piscar 5 vezes.
 
-uint32_t VERMELHO = 0x00990000; //HEXADECIMAL 60% VERMELHO
-uint32_t AZUL = 0x00009900; //HEXADECIMAL 60% AZUL 
+uint32_t VERMELHO = 0x00330000; //HEXADECIMAL VERMELHO
+uint32_t AZUL = 0x00003300; //HEXADECIMAL AZUL 
 
 
 //Prototipação de funções
