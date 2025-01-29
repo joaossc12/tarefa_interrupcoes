@@ -2,6 +2,8 @@
 #include "pico/stdlib.h"
 #include "hardware/pwm.h"
 #include "hardware/clocks.h"
+#include "hardware/pio.h"
+#include "tarefa_interrupcoes.pio.h"
 
 #define led_red 13
 #define led_blue 12
@@ -22,6 +24,12 @@ bool blink_led(struct repeating_timer *t) {
 
 
 int main() {
+    PIO pio = pio0;
+    bool clk = set_sys_clock_khz(128000, false);
+    uint offset = pio_add_program(pio, &tafera_interrupcoes_program);
+    uint sm = pio_claim_unused_sm(pio, true);
+
+    tafera_interrupcoes_program_init(pio, sm, offset, led_matrix);
 
     init_pinos();
     struct repeating_timer timer;
