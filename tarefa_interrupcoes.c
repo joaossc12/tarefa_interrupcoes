@@ -10,7 +10,7 @@
 #define button_a 5
 #define button_b 6
 
-#define INTERVAL_US 100000  // 100ms (5Hz)
+#define PERIODO_US 100000  // 100ms para mudar o estado 10 vezes por segundo, portanto piscar 5 vezes.
 
 void init_pinos();
 
@@ -25,7 +25,7 @@ int main() {
 
     init_pinos();
     struct repeating_timer timer;
-    add_repeating_timer_us(INTERVAL_US, blink_led, NULL, &timer);
+    add_repeating_timer_us(PERIODO_US, blink_led, NULL, &timer);
 
     while (true) {
         tight_loop_contents();
