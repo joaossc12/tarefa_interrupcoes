@@ -16,12 +16,39 @@
 
 uint32_t VERMELHO = 0x00330000; //HEXADECIMAL VERMELHO
 uint32_t AZUL = 0x00003300; //HEXADECIMAL AZUL 
-
+volatile uint32_t color = 0x33000000; //INICIA COM LED NA COR VERDE
+volatile int8_t control_led = 0;
 
 //Prototipação de funções
 void init_pinos();
 bool blink_led(struct repeating_timer *t);
 void envio_matriz_led(PIO pio, uint sm, uint32_t cor, uint ref);
+
+static void callback_button(uint gpio, uint32_t events) {
+    static absolute_time_t last_time_A = 0; // Tempo do último evento do botão A
+    static absolute_time_t last_time_B = 0; // Tempo do último evento do botão B
+    absolute_time_t now = get_absolute_time();
+
+    if (gpio == button_a) { // Interrupção do botão A
+        if (absolute_time_diff_us(last_time_A, now) > 50000) { // Debounce de 50ms
+            control_led ++;
+            if(control_led > 9){
+                control_led = 0;
+            }
+            color = AZUL;
+            last_time_A = now; // Atualiza o tempo do último evento do botão A
+        }
+    } else if (gpio == button_b) { // Interrupção do botão B
+        if (absolute_time_diff_us(last_time_B, now) > 50000) { // Debounce de 50ms
+            control_led --;
+            if (control_led < 0){
+                control_led = 9;
+            }
+            color = VERMELHO;
+            last_time_B = now; // Atualiza o tempo do último evento do botão B
+        }
+    }
+}
 
 int main() {
     PIO pio = pio0;
@@ -34,18 +61,15 @@ int main() {
     init_pinos();
     struct repeating_timer timer;
     add_repeating_timer_us(PERIODO_US, blink_led, NULL, &timer);
+    gpio_set_irq_enabled_with_callback(button_a, GPIO_IRQ_EDGE_FALL, true, &callback_button);
+    gpio_set_irq_enabled(button_b, GPIO_IRQ_EDGE_FALL, true);
+
+    stdio_init_all();
 
     while (true) {
-        for (int i = 0; i<10; i++){
-            if (i%2 == 0){
-                envio_matriz_led(pio, sm, VERMELHO, i);
-            }
-            else{
-                envio_matriz_led(pio, sm, AZUL, i);
-            }
-            sleep_ms(1000);
 
-        }
+        envio_matriz_led(pio, sm, color, control_led);
+        sleep_ms(1000);
     }
 }
 
