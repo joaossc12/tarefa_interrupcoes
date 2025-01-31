@@ -93,7 +93,7 @@ static void callback_button(uint gpio, uint32_t events) {
     absolute_time_t now = get_absolute_time();
 
     if (gpio == button_a) { // Interrupção do botão A
-        if (absolute_time_diff_us(last_time_A, now) > 500000) { // Debounce de 500ms
+        if (absolute_time_diff_us(last_time_A, now) > 200000) { // Debounce de 500ms
             control_led ++;
             if(control_led > 9){
                 control_led = 0;
@@ -102,7 +102,7 @@ static void callback_button(uint gpio, uint32_t events) {
             last_time_A = now; // Atualiza o tempo do último evento do botão A
         }
     } else if (gpio == button_b) { // Interrupção do botão B
-        if (absolute_time_diff_us(last_time_B, now) > 500000) { // Debounce de 50ms
+        if (absolute_time_diff_us(last_time_B, now) > 200000) { // Debounce de 50ms
             control_led --;
             if (control_led < 0){
                 control_led = 9;
