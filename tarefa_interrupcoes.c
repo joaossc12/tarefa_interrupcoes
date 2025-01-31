@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
-#include "hardware/pwm.h"
 #include "hardware/clocks.h"
 #include "hardware/pio.h"
 #include "tarefa_interrupcoes.pio.h"
@@ -23,41 +22,14 @@ volatile int8_t control_led = 0;
 void init_pinos();
 bool blink_led(struct repeating_timer *t);
 void envio_matriz_led(PIO pio, uint sm, uint32_t cor, uint ref);
-
-static void callback_button(uint gpio, uint32_t events) {
-    static absolute_time_t last_time_A = 0; // Tempo do último evento do botão A
-    static absolute_time_t last_time_B = 0; // Tempo do último evento do botão B
-    absolute_time_t now = get_absolute_time();
-
-    if (gpio == button_a) { // Interrupção do botão A
-        if (absolute_time_diff_us(last_time_A, now) > 50000) { // Debounce de 50ms
-            control_led ++;
-            if(control_led > 9){
-                control_led = 0;
-            }
-            color = AZUL;
-            last_time_A = now; // Atualiza o tempo do último evento do botão A
-        }
-    } else if (gpio == button_b) { // Interrupção do botão B
-        if (absolute_time_diff_us(last_time_B, now) > 50000) { // Debounce de 50ms
-            control_led --;
-            if (control_led < 0){
-                control_led = 9;
-            }
-            color = VERMELHO;
-            last_time_B = now; // Atualiza o tempo do último evento do botão B
-        }
-    }
-}
+static void callback_button(uint gpio, uint32_t events);
 
 int main() {
     PIO pio = pio0;
     bool clk = set_sys_clock_khz(128000, false);
     uint offset = pio_add_program(pio, &tafera_interrupcoes_program);
     uint sm = pio_claim_unused_sm(pio, true);
-
     tafera_interrupcoes_program_init(pio, sm, offset, led_matrix);
-
     init_pinos();
     struct repeating_timer timer;
     add_repeating_timer_us(PERIODO_US, blink_led, NULL, &timer);
@@ -113,4 +85,30 @@ void envio_matriz_led(PIO pio, uint sm, uint32_t cor, uint ref){
 bool blink_led(struct repeating_timer *t) {
     gpio_put(led_red, !gpio_get(led_red));  // Inverte o estado do LED
     return true;  // Continua repetindo
+}
+
+static void callback_button(uint gpio, uint32_t events) {
+    static absolute_time_t last_time_A = 0; // Tempo do último evento do botão A
+    static absolute_time_t last_time_B = 0; // Tempo do último evento do botão B
+    absolute_time_t now = get_absolute_time();
+
+    if (gpio == button_a) { // Interrupção do botão A
+        if (absolute_time_diff_us(last_time_A, now) > 500000) { // Debounce de 500ms
+            control_led ++;
+            if(control_led > 9){
+                control_led = 0;
+            }
+            color = AZUL;
+            last_time_A = now; // Atualiza o tempo do último evento do botão A
+        }
+    } else if (gpio == button_b) { // Interrupção do botão B
+        if (absolute_time_diff_us(last_time_B, now) > 500000) { // Debounce de 50ms
+            control_led --;
+            if (control_led < 0){
+                control_led = 9;
+            }
+            color = VERMELHO;
+            last_time_B = now; // Atualiza o tempo do último evento do botão B
+        }
+    }
 }
