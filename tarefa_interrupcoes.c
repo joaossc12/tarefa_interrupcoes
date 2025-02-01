@@ -13,9 +13,10 @@
 
 #define PERIODO_US 100000  // 100ms para mudar o estado 10 vezes por segundo, portanto piscar 5 vezes.
 
-uint32_t VERMELHO = 0x00330000; //HEXADECIMAL VERMELHO
-uint32_t AZUL = 0x00003300; //HEXADECIMAL AZUL 
-volatile uint32_t color = 0x33000000; //INICIA COM LED NA COR VERDE
+uint32_t VERMELHO = 0x00330000; //HEXADECIMAL VERMELHO 20%
+uint32_t AZUL = 0x00003300; //HEXADECIMAL AZUL 20%
+uint32_t VERDE = 0x33000000; //HEXADECIMAL VERDE 20%
+volatile uint32_t color; 
 volatile int8_t control_led = 0;
 
 //Prototipação de funções
@@ -25,21 +26,23 @@ void envio_matriz_led(PIO pio, uint sm, uint32_t cor, uint ref);
 static void callback_button(uint gpio, uint32_t events);
 
 int main() {
+    //PIO
     PIO pio = pio0;
     bool clk = set_sys_clock_khz(128000, false);
     uint offset = pio_add_program(pio, &tafera_interrupcoes_program);
     uint sm = pio_claim_unused_sm(pio, true);
     tafera_interrupcoes_program_init(pio, sm, offset, led_matrix);
+    //Interrupções e timer
     init_pinos();
+    if (clk){color = VERDE;} //Inicia a exibição apenas se o clock for configurado adequadamente
     struct repeating_timer timer;
     add_repeating_timer_us(PERIODO_US, blink_led, NULL, &timer);
     gpio_set_irq_enabled_with_callback(button_a, GPIO_IRQ_EDGE_FALL, true, &callback_button);
     gpio_set_irq_enabled(button_b, GPIO_IRQ_EDGE_FALL, true);
-
+    //UART
     stdio_init_all();
 
     while (true) {
-
         envio_matriz_led(pio, sm, color, control_led);
         sleep_ms(1000);
     }
